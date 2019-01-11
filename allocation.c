@@ -8,7 +8,7 @@
 
 //Batch[BATCH_COUNT] allocatorunit;
 
-
+uint8_t offset = 2*sizeof(AllocatorUnit*);
 
 
 // Initialize allocator unit and returns pointer to first data batch
@@ -44,7 +44,7 @@ void* allocatorInit(AllocatorUnit* unit)
 	return savedBatch;
 }
 
-//Finds first not used batch and returns pointer to it
+// Finds first not used batch and returns pointer to it
 // params:
 // unit - pointer to first unit of pool
 void* allocBatch(AllocatorUnit* unit)
@@ -84,13 +84,14 @@ void* allocBatch(AllocatorUnit* unit)
 				//new pointer for the start of chain for last unit
 				(unit+1)->end->start = unit;
 			}
-
-
-
 			return (void*)&unit->data[0];
 		}
 		else
 		{
+			if (unit->end == NULL)
+			{
+				return NULL;
+			}
 			unit = unit->end + 1;
 		}
 	}
@@ -98,16 +99,114 @@ void* allocBatch(AllocatorUnit* unit)
 }
 
 
-//Frees batch
+// Frees batch
 // params:
 // unit - pointer to first unit of pool
 // batch - batch to free
-uint8_t freeBatch(AllocatorUnit* unit, void* batch)
+// return 0 on sucsess
+int freeBatch(AllocatorUnit* firstUnit, void* batch)
 {
+	if ((batch < (void*)firstUnit) || (batch > (void*)(firstUnit + BATCH_COUNT)))
+	{
+		return -1;
+	}
 
+	AllocatorUnit* unit = (AllocatorUnit*)((char*)batch - offset);
+
+	if (((char*)unit - (char*)firstUnit) % sizeof(AllocatorUnit))
+	{
+		printf("Bad alignment\n");
+		return -1;
+	}
+	// Cant free not used unit
+	if (unit->used == 0)
+	{
+		return -1;
+	}
+
+	if (unit == firstUnit)		//processing unit on the left side
+	{
+		if ((unit + 1)->used)
+		{
+			//move pointer to end of next unit
+			(unit + 1)->end = unit->end;
+			//move poitner of start of chain to next unit
+			unit->end->start = unit + 1;
+			//make new chain
+			unit->start = unit;
+			unit->end = unit;
+		}
+		else
+		{
+			//move pointer to start of end of next chain to unit
+			(unit + 1)->end->start = unit;
+			//move poitner to end of unit to end of chain
+			unit->end = (unit + 1)->end;
+			//remove not used pointes
+			unit->start = (unit + 1)->end = NULL;
+		}
+		unit->used = 0;
+		return 0;
+
+	}
+	if (unit == firstUnit + BATCH_COUNT)		//processing unit on the rigth side
+	{
+		if ((unit - 1)->used)
+		{
+			//move pointer to start of prev unit
+			(unit - 1)->start = unit->start;
+			//move poitner of end of chain to prev unit
+			unit->start->end = unit - 1;
+			//make new chain
+			unit->start = unit;
+			unit->end = unit;
+		}
+		else
+		{
+			//move pointer to end of start of prev chain to unit
+			(unit - 1)->start->end = unit;
+			//move poitner to end of unit to end of chain
+			unit->start = (unit - 1)->start;
+			//remove not used pointes
+			unit->end = (unit - 1)->start = NULL;
+		}
+		unit->used = 0;
+		return 0;
+	}
+	if ( (unit - 1)->used  &&  (unit + 1)->used && unit>firstUnit && unit<(firstUnit + BATCH_COUNT))	//Freeing unit surrounded by used units
+	{
+		//find start of chain
+		AllocatorUnit* chainStart = unit - 1;
+		while(!chainStart--);
+		if(!chainStart)
+		{
+			printf("failed to find chainStart\n");
+			return -1;
+		}
+		printf("chainStart = 0x%x\n", chainStart);
+
+		//move pointer to end of next unit
+		(unit + 1)->end = unit->end;
+		//move pointer to start of end of next chain
+		chainStart->end->start = unit + 1;
+
+				//move pointer to start of prev unit
+		(unit - 1)->start = unit->start;
+		//move pointer to end of start of prev chain
+		chainStart->end = unit - 1;
+
+		//make new chain
+		unit->start = unit;
+		unit->end = unit;
+		unit->used = 0;
+		return 0;
+	}
+	return -1;
 }
 
-//Prints count allocation units from place
+
+
+// Prints count allocation units from place
 // params:
 // unit - pointer to first unit of pool
 // place - first unit to print

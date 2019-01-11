@@ -20,8 +20,8 @@ typedef struct AllocatorUnit
 {
 	struct AllocatorUnit* start;	//Pointer to the start of blocks chain
 	struct AllocatorUnit* end;		//Pointer to the end of blocks chain
-	uint8_t used;	//Data in usage flag
 	uint8_t data[BATCH_SIZE];
+	uint8_t used;	//Data in usage flag
 }AllocatorUnit;
 
 
@@ -30,8 +30,10 @@ typedef struct AllocatorPool
 	AllocatorUnit* head;
 } AllocatorPool;
 
-void* allocatorInit(AllocatorUnit*);
-void* allocBatch(AllocatorUnit*);
-void printUnits(AllocatorUnit*, uint16_t, uint16_t);
+void* allocatorInit(AllocatorUnit* unit);
+void* allocBatch(AllocatorUnit* unit);
+int freeBatch(AllocatorUnit* unit, void* batch);
+AllocatorUnit* batchToUnit(void* batch);
+void printUnits(AllocatorUnit* unit, uint16_t place, uint16_t count);
 
 #endif /* ALLOCATION_H_ */
