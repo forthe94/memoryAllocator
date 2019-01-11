@@ -26,7 +26,9 @@ void* allocatorInit(AllocatorUnit* unit)
 	}
 	void* savedBatch = &unit->data[0];
 
-	unit->end = unit + BATCH_COUNT;		//make pointer to chain end
+	unit->end = unit + BATCH_COUNT - 1;		//make pointer to chain end
+	unit->end->start = unit;	//make pointer to chain start
+
 	printf("allocator main chain end 0x%x\n", unit->end);
 
 	for(i = 0; i < BATCH_COUNT; i++, unit++)
@@ -38,7 +40,6 @@ void* allocatorInit(AllocatorUnit* unit)
 		}
 	}
 
-	unit->start = unit - BATCH_COUNT;	//make pointer to chain start
 	printf("allocator main chain start 0x%x\n", unit->start);
 
 	return savedBatch;
@@ -62,10 +63,25 @@ void* allocBatch(AllocatorUnit* unit)
 				(unit+1)->end = unit->end;
 				//move pointer to start of chain for last unit
 				unit->end->start = (unit+1);
+				if(unit == unitStart)
+				{
+					//make new chain
+					unit->start = unit;
+					unit->end = unit;
+				}
+				else
+				{
+					//add unit to used chain
 
-				//make new chain
-				unit->start = unit;
-				unit->end = unit;
+					//make pointer to chain start
+					unit->start = (unit - 1)->start;
+					//move pointer of end of chain
+					(unit - 1)->start->end = unit;
+
+					//delete not used pointers
+					unit->end = (unit - 1)->start = NULL;
+
+				}
 			}
 
 			if ( (unit+1)->used == 1)			//next unit used
@@ -75,14 +91,16 @@ void* allocBatch(AllocatorUnit* unit)
 				//new pointer to the end of chain for new used unit
 				unit->end = (unit+1)->end;
 
+				//new pointer for the start of chain for last unit
+				(unit+1)->end->start = unit;
+
 				//dont need pointer to start for this unit anymore
 				unit->start = NULL;
 
 				//dont need pointer to end for next unit anymore
 				(unit+1)->end = NULL;
 
-				//new pointer for the start of chain for last unit
-				(unit+1)->end->start = unit;
+
 			}
 			return (void*)&unit->data[0];
 		}
@@ -173,31 +191,105 @@ int freeBatch(AllocatorUnit* firstUnit, void* batch)
 		unit->used = 0;
 		return 0;
 	}
-	if ( (unit - 1)->used  &&  (unit + 1)->used && unit>firstUnit && unit<(firstUnit + BATCH_COUNT))	//Freeing unit surrounded by used units
+	if ( (unit - 1)->used  &&  (unit + 1)->used )	//Freeing unit surrounded by used units
 	{
 		//find start of chain
 		AllocatorUnit* chainStart = unit - 1;
-		while(!chainStart--);
-		if(!chainStart)
+		while(!chainStart->end)
 		{
-			printf("failed to find chainStart\n");
-			return -1;
+			chainStart--;
+			if(chainStart < firstUnit)
+			{
+				printf("failed to find chainStart\n");
+				return -1;
+			}
 		}
+
 		printf("chainStart = 0x%x\n", chainStart);
 
 		//move pointer to end of next unit
-		(unit + 1)->end = unit->end;
+		(unit + 1)->end = chainStart->end;
 		//move pointer to start of end of next chain
 		chainStart->end->start = unit + 1;
 
-				//move pointer to start of prev unit
-		(unit - 1)->start = unit->start;
+		//move pointer to start of prev unit
+		(unit - 1)->start = chainStart;
 		//move pointer to end of start of prev chain
 		chainStart->end = unit - 1;
 
 		//make new chain
 		unit->start = unit;
 		unit->end = unit;
+		unit->used = 0;
+		return 0;
+	}
+	if ( !(unit - 1)->used  &&  !(unit + 1)->used )	//Freeing unit surrounded by unused units
+	{
+		AllocatorUnit* chainStart = unit - 1;
+		AllocatorUnit* chainEnd = unit + 1;
+		while(!chainStart->end)
+		{
+			chainStart--;
+			if(chainStart < firstUnit)
+			{
+				printf("failed to find chainStart\n");
+				return -1;
+			}
+		}
+
+
+		while(!chainEnd->start)
+		{
+			chainEnd++;
+			if(chainEnd > firstUnit + BATCH_COUNT - 1)
+			{
+				printf("failed to find chainEnd\n");
+				return -1;
+			}
+		}
+
+		chainStart->end = chainEnd;
+		chainEnd->start = chainStart;
+
+		//delete unused pointers
+		unit->start = unit->end = (unit - 1)->start = (unit + 1)->end = NULL;
+
+		unit->used = 0;
+		return 0;
+	}
+	if ( (unit + 1)->used )		//Freeing unit unused-freeing-used
+	{
+		//move pointer to end of chain of next unit
+		(unit + 1)->end = unit->end;
+		//move pointer to start of end of chain
+		unit->end->start = unit + 1;
+
+		//move pointer to end of prev unit
+		(unit - 1)->end = unit;
+		//creat pointer to start of chain
+		unit->start = (unit - 1)->start;
+
+		//delete unused pointers
+		(unit - 1)->start = unit->end = NULL;
+
+		unit->used = 0;
+		return 0;
+	}
+	if ( (unit - 1)->used )		//Freeing unit used-freeing-unused
+	{
+		//move pointer to start of chain of prev unit
+		(unit - 1)->start = unit->start;
+		//move pointer to end of start of chain
+		unit->start->end = unit - 1;
+
+		//move pointer to start of next unit
+		(unit + 1)->start = unit;
+		//creat pointer to end of chain
+		unit->end = (unit + 1)->end;
+
+		//delete unused pointers
+		(unit + 1)->end = unit->start = NULL;
+
 		unit->used = 0;
 		return 0;
 	}
