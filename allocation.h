@@ -15,14 +15,23 @@
 #define BATCH_COUNT 32
 
 
+
 typedef struct AllocatorUnit
 {
+	struct AllocatorUnit* start;	//Pointer to the start of blocks chain
+	struct AllocatorUnit* end;		//Pointer to the end of blocks chain
 	uint8_t used;	//Data in usage flag
-	struct AllocatorUnit* end;		//Pointer to end of blocks chain
 	uint8_t data[BATCH_SIZE];
 }AllocatorUnit;
 
+
+typedef struct AllocatorPool
+{
+	AllocatorUnit* head;
+} AllocatorPool;
+
 void* allocatorInit(AllocatorUnit*);
 void* allocBatch(AllocatorUnit*);
+void printUnits(AllocatorUnit*, uint16_t, uint16_t);
 
 #endif /* ALLOCATION_H_ */
