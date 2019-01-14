@@ -1,15 +1,21 @@
-/*
- * allocation.c
- *
- *  Created on: Jan 10, 2019
- *      Author: tetenkov
- */
+/*!
+** @file allocation.c
+** @version 1.0
+** @brief
+**         Implementation of allocator functions
+*/
+/*!
+**  @addtogroup allocator_module Memory allocator module documentation
+**  @{
+*/
 #include "allocation.h"
 
-
-// Initialize allocator pool
-// params:
-// unit - pointer to pool
+/*!
+**     @brief
+**         Initialize allocator pool
+**     @param
+**         unit - pointer to pool
+*/
 void allocatorInit(AllocatorPool* pool)
 {
 	if(!pool)
@@ -26,9 +32,15 @@ void allocatorInit(AllocatorPool* pool)
 	curUnit->next = NULL;
 }
 
-// Finds first not used batch and returns pointer to it
-// params:
-// unit - pointer to first unit of pool
+
+/*!
+**     @brief
+**         Finds first not used batch and returns pointer to it
+**     @param
+**         unit - pointer to pool
+**     @return
+**              - pointer to allocated batch
+*/
 void* allocBatch(AllocatorPool* pool)
 {
 	AllocatorUnit* tmp;
@@ -48,12 +60,16 @@ void* allocBatch(AllocatorPool* pool)
 	return tmp;
 }
 
-
-// Frees batch
-// params:
-// unit - pointer to first unit of pool
-// batch - batch to free
-// return 0 on sucsess
+/*!
+**     @brief
+**         Frees batch
+**     @param
+**         pool - pointer to pool
+**		   batch - batch to free
+**     @return
+**               - 0 on succes
+**               - -1 on fail
+*/
 int freeBatch(AllocatorPool* pool, void* batch)
 {
 	if(!pool)
@@ -73,13 +89,14 @@ int freeBatch(AllocatorPool* pool, void* batch)
 }
 
 
-
-// Prints count allocation units and thier
-// pointers from place
-// params:
-// pool - pointer to pool
-// place - first unit to print
-// count - amount of units to print
+/*!
+**     @brief
+**         Prints count allocation units and thier
+**     @param
+**         pool - pointer to pool
+**		   place - first unit to print
+**		   count - amount of units to print
+*/
 void printUnits(AllocatorPool* pool, uint32_t place, uint32_t count)
 {
 	AllocatorUnit* curUnit;
@@ -89,8 +106,12 @@ void printUnits(AllocatorPool* pool, uint32_t place, uint32_t count)
 		printf("0x%x -> 0x%x\n", curUnit, curUnit->next);
 	}
 }
-
-// Prints pool of empty units in tethered list
+/*!
+**     @brief
+**         Prints pool of empty units in tethered list
+**     @param
+**         pool - pointer to pool
+*/
 void printTetheredList(AllocatorPool* pool)
 {
 	AllocatorUnit* curUnit;
@@ -99,3 +120,7 @@ void printTetheredList(AllocatorPool* pool)
 		printf("0x%x -> 0x%x\n", curUnit, curUnit->next);
 	}
 }
+
+/*!
+** @}
+*/
