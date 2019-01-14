@@ -25,7 +25,7 @@ void allocatorInit(AllocatorPool* pool)
 
 	AllocatorUnit* curUnit;
 
-	for (curUnit = pool->head; curUnit < (pool->head + BATCH_COUNT - 1); curUnit++)
+	for (curUnit = pool->head; curUnit < (pool->head + BATCH_COUNT); curUnit++)
 	{
 		curUnit->next = curUnit + 1;
 	}
@@ -77,7 +77,7 @@ int freeBatch(AllocatorPool* pool, void* batch)
 	if(!batch)
 		return -1;
 
-	if ( (batch < (void*)pool) || (batch > (void*)(pool + BATCH_COUNT - 1)) )
+	if ( (batch < (void*)pool) || (batch > (void*)(pool + BATCH_COUNT)) )
 		return -1;
 
 	vTaskEnterCritical();
@@ -121,6 +121,44 @@ void printTetheredList(AllocatorPool* pool)
 	}
 }
 
+/*!
+**     @brief
+**         Counts elements in list of empty units
+**     @param
+**         pool - pointer to pool
+**     @return
+**         		- amount of empty units in pool
+*/
+uint32_t getUnitsCount(AllocatorPool* pool)
+{
+	AllocatorUnit* curUnit;
+	uint32_t count = 0;
+
+	curUnit = pool->head;
+
+	while(curUnit->next != NULL)
+	{
+		count++;
+		curUnit = curUnit->next;
+	}
+	return count;
+}
+
+
+
+/*!
+ * 		@brief
+ * 			Allocates all memory, then randomly returns some chunks
+ * 			back, after returns all left chunks and check if list
+ * 			length is proper.
+ * 		@param
+ * 			pointer to pool
+ */
+
+int Test1(AllocatorPool* pool)
+{
+
+}
 /*!
 ** @}
 */

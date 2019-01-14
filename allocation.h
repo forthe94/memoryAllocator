@@ -31,7 +31,7 @@ typedef struct AllocatorPool
 {
 	AllocatorUnit* start;
 	AllocatorUnit* head;
-	AllocatorUnit mem[BATCH_COUNT];
+	AllocatorUnit mem[BATCH_COUNT+1];
 } AllocatorPool;
 
 
@@ -83,6 +83,29 @@ void printUnits(AllocatorPool* pool, uint32_t place, uint32_t count);
 **         pool - pointer to pool
 */
 void printTetheredList(AllocatorPool* pool);
+
+
+/*!
+**     @brief
+**         Counts elements in list of empty units
+**     @param
+**         pool - pointer to pool
+**     @return
+**         		- amount of empty units in pool
+*/
+uint32_t getUnitsCount(AllocatorPool* pool);
+
+
+/*!
+ * 		@brief
+ * 			Allocates all memory, then randomly returns some chunks
+ * 			back, after returns all left chunks and check if list
+ * 			length is proper.
+ * 		@param
+ * 			pointer to pool
+ */
+
+int Test1(AllocatorPool* pool);
 
 #endif /* ALLOCATION_H_ */
 
