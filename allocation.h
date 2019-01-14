@@ -9,9 +9,10 @@
 #define ALLOCATION_H_
 
 #include "u_types.h"
+#include <system.h>
 
-#define BATCH_SIZE 4
-#define BATCH_COUNT 4
+#define BATCH_SIZE 16
+#define BATCH_COUNT 200
 
 
 

@@ -40,8 +40,10 @@ void* allocBatch(AllocatorPool* pool)
 	if(!pool->head->next)
 		return NULL;
 
+	vTaskEnterCritical();
 	tmp = pool->head;
 	pool->head = pool->head->next;
+	vTaskExitCritical();
 
 	return tmp;
 }
@@ -62,8 +64,10 @@ int freeBatch(AllocatorPool* pool, void* batch)
 	if ( (batch < (void*)pool) || (batch > (void*)(pool + BATCH_COUNT - 1)) )
 		return -1;
 
+	vTaskEnterCritical();
 	((AllocatorUnit*)batch)->next = pool->head;
 	pool->head = ((AllocatorUnit*)batch);
+	vTaskExitCritical();
 
 	return 0;
 }
