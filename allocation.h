@@ -10,7 +10,6 @@
 
 #include "u_types.h"
 
-
 #define BATCH_SIZE 4
 #define BATCH_COUNT 4
 
