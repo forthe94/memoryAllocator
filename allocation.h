@@ -13,13 +13,10 @@
 #define ALLOCATION_H_
 
 #include "u_types.h"
-#include <system.h>
-//#include "clib.h"
-
 
 
 #define BATCH_SIZE 16
-#define BATCH_COUNT 200
+#define BATCH_COUNT 2000
 
 
 
@@ -108,7 +105,7 @@ uint32_t getUnitsCount(AllocatorPool* pool);
  * 			pointer to pool
  */
 
-int Test1(AllocatorPool* pool);
+int testAlocFreeAllMem(AllocatorPool* pool);
 
 #endif /* ALLOCATION_H_ */
 
