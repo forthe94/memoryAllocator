@@ -21,6 +21,6 @@ Warning! Never free same chunks of memory more than one time!
 
 ## Running the tests
 
-You can run tests buy calling testAlocFreeAllMem(AllocatorPool* pool) function
-it will allocate all free memory, then free some random chunks and then free all left
+You can run tests buy calling testAlocFreeAllMem(AllocatorPool* pool) function.
+It will allocate all free memory, then free some random chunks and then free all left
 chunks. On succes returns 0.
