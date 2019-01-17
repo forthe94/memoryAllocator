@@ -3,7 +3,7 @@ Simple fixed chunk size memory allocator. Based on singly linked list. Freeing a
 ## Usage
 1) Declare global variable AllocationPool
 
-AllocationPool yourPool;
+AllocatorPool yourPool;
 
 2) Call initialization function 
 
